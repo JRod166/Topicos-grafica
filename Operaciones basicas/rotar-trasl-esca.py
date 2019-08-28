@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import cv2
 import math
@@ -6,8 +7,17 @@ from math import *
 def toRad(angle):
     return angle*pi/180
 
+def rotateSquare(img):
+    rows,cols,channels = img.shape
+    newImg=np.zeros((cols,rows,channels),np.uint8)
+    for i in range (0,rows):
+        for j in range (0,cols):
+            newImg[j][i]=img[i][j]
+    return newImg
 
 def transpose(img, x = 0 , y = 0):
+    #x'=x+k
+    #y'=x+l
     rows, cols, channels = img.shape
     newImg=np.zeros((rows+x,cols+y,channels),np.uint8)
     for i in range (0,rows):
@@ -34,8 +44,8 @@ def rotate(img,angleR=0):
     #x'=x*cos(theta)-y*sen(theta)
     #y'=x*sen(theta)+y*cos(theta)
     rows, cols, channels = img.shape
-    while angleR > 90:
-        img=rotate(img,90)
+    while angleR >= 90:
+        img=rotateSquare(img)
         rows, cols, channels = img.shape
         angleR-=90
     xPos=0
@@ -53,11 +63,40 @@ def rotate(img,angleR=0):
                 newImg[x_1][y_1]=img[i][j]
     return newImg
 
-img = cv2.imread('reno.jpeg',1) #BGR #img[rows][cols][channels]
-cv2.imshow('image',img)
-#newImg = scale(img,2)
-newImg = rotate(img,719)
-#newImg = transpose(img,10,20)
-cv2.imshow('image2',newImg)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if __name__ == '__main__':
+    #Setup logger
+    parser = argparse.ArgumentParser(description="Operaciones basicas de PDI",
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("img_file",
+                        action="store",
+                        help="Input image file")
+    parser.add_argument("-T",
+                        nargs=2,
+                        action="store",
+                        type=int,
+                        dest="Transpose",
+                        default=[0,0],
+                        help="Transpose image")
+    parser.add_argument("-S",
+                        action="store",
+                        dest="Scale",
+                        default=1,
+                        type=float,
+                        help="Scale image")
+    parser.add_argument("-R",
+                        action="store",
+                        dest="Rotate",
+                        type=float,
+                        default=0,
+                        help="Rotate image")
+    args=parser.parse_args()
+
+    img = cv2.imread(args.img_file,1) #BGR #img[rows][cols][channels]
+    cv2.imshow('Original',img)
+    newImg=img
+    newImg = transpose(newImg,args.Transpose[0],args.Transpose[1])
+    newImg = scale(newImg,args.Scale)
+    newImg = rotate(newImg,args.Rotate)
+    cv2.imshow('Transformed',newImg)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
