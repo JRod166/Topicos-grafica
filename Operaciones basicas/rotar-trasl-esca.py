@@ -12,7 +12,7 @@ def rotateSquare(img):
     newImg=np.zeros((cols,rows,channels),np.uint8)
     for i in range (0,rows):
         for j in range (0,cols):
-            newImg[j][i]=img[i][j]
+            newImg[rows-1-j][i]=img[i][j]
     return newImg
 
 def transpose(img, x = 0 , y = 0):
@@ -46,6 +46,7 @@ def rotate(img,angleR=0):
     rows, cols, channels = img.shape
     while angleR >= 90:
         img=rotateSquare(img)
+        #cv2.imshow('try',img.T)
         rows, cols, channels = img.shape
         angleR-=90
     xPos=0
