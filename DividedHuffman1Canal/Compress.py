@@ -2,13 +2,12 @@ import numpy as np
 
 
 def getHist(img):
-    row, col,channels = img.shape
-    y = np.zeros(256)
-    for i in range(0,row):
-        for j in range(0,col):
-            for c in range(0,channels):
-                y[img[i][j][c]] += 1
-    return y
+   row, col = img.shape
+   y = np.zeros(256)
+   for i in range(0,row):
+      for j in range(0,col):
+         y[img[i,j]] += 1
+   return y
 
 def uncompressed(img,file):
     row,col=img.shape
@@ -17,7 +16,7 @@ def uncompressed(img,file):
         f.write(str(img[i][0]))
         for j in range(1,col):
             f.write('\t')
-            f.write(hex(img[i][j]).lstrip("0x"))
+            f.write(hex(img[i][j]).lstrip("0x").zfill(2))
     f.close()
 
 
@@ -61,37 +60,29 @@ def setTree(probabilitiesOrder,file):
     f.close()
 
 def compressionMethod(probabilitiesOrder,img,file):
-    row, col,channels = img.shape
-    # print (channel)
+    row, col = img.shape
     f = open(file+".huf", "a")
     for i in range (0,row-1):
-        f.write(hex(probabilitiesOrder.index(img[i][0][0])).lstrip("0x"))
-        f.write(hex(probabilitiesOrder.index(img[i][0][1])).lstrip("0x").zfill(2))
-        f.write(hex(probabilitiesOrder.index(img[i][0][2])).lstrip("0x").zfill(2))
-        # print(hex(probabilitiesOrder.index(img[i][0])).lstrip("0x").zfill(2),end='\t')
+        f.write(hex(probabilitiesOrder.index(img[i][0])).lstrip("0x"))
+        # print(hex(probabilitiesOrder.index(img[i][0])).lstrip("0x"),end='\t')
         for j in range (1,col):
             f.write('\t')
-            f.write(hex(probabilitiesOrder.index(img[i][j][0])).lstrip("0x"))
-            f.write(hex(probabilitiesOrder.index(img[i][j][1])).lstrip("0x").zfill(2))
-            f.write(hex(probabilitiesOrder.index(img[i][j][2])).lstrip("0x").zfill(2))
+            aux = hex(probabilitiesOrder.index(img[i][j])).lstrip("0x")
+            # print(aux,end='\t')
+            f.write(aux)
         f.write('\n')
         # print('\n')
-    f.write(hex(probabilitiesOrder.index(img[row-1][0][0])).lstrip("0x"))
-    f.write(hex(probabilitiesOrder.index(img[row-1][0][1])).lstrip("0x").zfill(2))
-    f.write(hex(probabilitiesOrder.index(img[row-1][0][2])).lstrip("0x").zfill(2))
+    f.write(hex(probabilitiesOrder.index(img[row-1][0])).lstrip("0x"))
     for j in range (1,col):
         f.write('\t')
-        f.write(hex(probabilitiesOrder.index(img[row-1][j][0])).lstrip("0x"))
-        f.write(hex(probabilitiesOrder.index(img[row-1][j][1])).lstrip("0x").zfill(2))
-        f.write(hex(probabilitiesOrder.index(img[row-1][j][2])).lstrip("0x").zfill(2))
-        # print(aux,end='\t')y
+        aux = hex(probabilitiesOrder.index(img[row-1][j])).lstrip("0x")
+        # print(aux,end='\t')
+        f.write(aux)
     f.close()
 
 def compress(img,file):
-    f = open(file+".huf", "w")
-    f.close()
-    row, col,channels = img.shape
-    pixels= row*col*channels
+    row, col = img.shape
+    pixels= row*col
     histogram = getHist(img)
     probabilites = getProbabilities(histogram,pixels)
     order= getOrder(probabilites)
