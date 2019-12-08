@@ -4,28 +4,41 @@ import numpy as np
 
 
 threshold_values = {}
-h = [1]
+h = []
 
 
 def Hist(img):
    row, col = img.shape
-   hist = np.zeros(256)
+   y = np.zeros(256)
    for i in range(0,row):
       for j in range(0,col):
-         hist[img[i,j]] += 1
-   return hist
+         y[img[i,j]] += 1
+
+   return y
 
 
 def regenerate_img(img, threshold):
     row, col = img.shape
-    newImg = np.zeros((row, col))
+    y = np.zeros((row, col))
     for i in range(0,row):
         for j in range(0,col):
             if img[i,j] >= threshold:
-                newImg[i,j] = 255
-    return newImg
+                y[i,j] = 255
+            else:
+                y[i,j] = 0
+    return y
 
-def weight(s, e):
+
+
+def countPixel(h):
+    cnt = 0
+    for i in range(0, len(h)):
+        if h[i]>0:
+           cnt += h[i]
+    return cnt
+
+
+def wieght(s, e):
     w = 0
     for i in range(s, e):
         w += h[i]
@@ -34,35 +47,32 @@ def weight(s, e):
 
 def mean(s, e):
     m = 0
-    w = weight(s, e)
+    w = wieght(s, e)
     for i in range(s, e):
         m += h[i] * i
 
-    return m/np.float64(w)
+    return m/float(w)
 
 
 def variance(s, e):
     v = 0
     m = mean(s, e)
-    w = weight(s, e)
+    w = wieght(s, e)
     for i in range(s, e):
         v += ((i - m) **2) * h[i]
-    v /= np.float64(w)
+    v /= w
     return v
 
 
-def threshold(histogram):
-    cnt = 0
-    for i in range(0, len(h)):
-        if h[i]>0:
-           cnt += h[i]
-    for i in range(1, len(histogram)):
+def threshold(h):
+    cnt = countPixel(h)
+    for i in range(1, len(h)):
         vb = variance(0, i)
-        wb = weight(0, i) / float(cnt)
+        wb = wieght(0, i) / float(cnt)
         mb = mean(0, i)
 
         vf = variance(i, len(h))
-        wf = weight(i, len(h)) / float(cnt)
+        wf = wieght(i, len(h)) / float(cnt)
         mf = mean(i, len(h))
 
         V2w = wb * (vb) + wf * (vf)
@@ -78,14 +88,15 @@ def get_optimal_threshold():
     return optimal_threshold[0]
 
 
-img = cv2.imread('../sample1.png',0)
+img = cv2.imread("../circuit.jpg",0)
 
-histogram = Hist(img)
-threshold(histogram)
+h = Hist(img)
+threshold(h)
 op_thres = get_optimal_threshold()
 
 res = regenerate_img(img, op_thres)
-cv2.imshow('otsu',res)
+cv2.imshow('Otsu',res)
+
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
