@@ -7,13 +7,15 @@ import Decompress
 from math import *
 
 def uncompressed(img,file):
-    row,col=img.shape
+    row,col,channels=img.shape
     f = open(file+".unc","w")
     for i in range(0,row):
-        f.write(hex(img[i][0]).lstrip("0x"))
+        for c in range(0,channels):
+            f.write(hex(img[i][0][c]).lstrip("0x").zfill(2))
         for j in range(1,col):
             f.write('\t')
-            f.write(hex(img[i][j]).lstrip("0x"))
+            for c in range(0,channels):
+                f.write(hex(img[i][j][c]).lstrip("0x").zfill(2))
         f.write('\n')
     f.close()
 
@@ -27,7 +29,7 @@ if __name__ == '__main__':
 
     args=parser.parse_args()
 
-    img = cv2.imread(args.img_file,0) #BGR #img[rows][cols][channels]
+    img = cv2.imread(args.img_file,1) #BGR #img[rows][cols][channels]
     file=args.img_file[:-4]
     split=file.split('/')
     file=split[len(split)-1]
