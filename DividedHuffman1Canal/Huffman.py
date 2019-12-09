@@ -4,6 +4,8 @@ import cv2
 import math
 import Compress
 import Decompress
+import sys
+import os
 from math import *
 
 def uncompressed(img,file):
@@ -16,6 +18,37 @@ def uncompressed(img,file):
             f.write(hex(img[i][j]).lstrip("0x"))
         f.write('\n')
     f.close()
+
+def distance(first,second):
+    sum=0
+    for i in range(0,len(first)):
+        sum+= pow((first[i]-second[i]),2)
+    return sqrt(sum)
+
+
+def MSE(img,newImg):
+    rows1,cols1=img.shape
+    rows2,cols2=newImg.shape
+    rows=min(rows1,rows2)
+    cols=min(cols1,cols2)
+    sum=0
+    for i in range(0,rows):
+        for j in range (0,cols):
+            sum=pow((img[i][j]-newImg[i][j]),2)
+    sum=sum/(rows*cols)
+    return sum
+
+def PSNR(mseVal,pixels):
+    e=sys.float_info.epsilon
+    a=pixels/(pow(mseVal,2)+e)
+    b=math.log(a,10)
+    psnrVal = 10*b
+    return psnrVal
+
+def getSize(filename):
+    st=os.stat(filename)
+    return st.st_size
+
 
 if __name__ == '__main__':
     #Setup logger
@@ -32,6 +65,7 @@ if __name__ == '__main__':
     split=file.split('/')
     file=split[len(split)-1]
     rows,cols=img.shape
+    pixels=rows*cols
     cv2.imshow('Original',img)
     rowHalf=int(rows/2)
     colHalf=int(cols/2)
@@ -49,5 +83,31 @@ if __name__ == '__main__':
     decompressed4 = Decompress.decompress(file+"4")
     decompressed=Decompress.reconstructdc(decompressed1,decompressed2,decompressed3,decompressed4)
     cv2.imshow('Decompressed',decompressed)
+
+    uncompressed(img,file)
+    mseVal = MSE(img,decompressed)
+    psnrVal = PSNR(mseVal,pixels)
+    compressedfile=getSize(file+"1.huf")+getSize(file+"2.huf")+getSize(file+"3.huf")+getSize(file+"4.huf")
+    uncompressedfile=getSize(file+".unc")
+    compressionRate = uncompressedfile/compressedfile
+    bpp = compressedfile/pixels
+
+    f=open("Divided1.csv","a")
+    f.write(file)
+    f.write(',')
+    print("Compression Rate: ",compressionRate)
+    f.write(str(compressionRate))
+    f.write(',')
+    print("MSE: ",mseVal)
+    f.write(str(mseVal))
+    f.write(',')
+    print("PSNR: ",psnrVal)
+    f.write(str(psnrVal))
+    f.write(',')
+    print("BPP: ",bpp)
+    f.write(str(bpp))
+    f.write('\n')
+    f.close()
+
     cv2.waitKey(0)
     cv2.destroyAllWindows()
